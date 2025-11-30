@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Прогноз футбольных матчей</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+</head>
+<body>
+<div class="container">
+    <h1>⚽ Прогноз футбольных матчей</h1>
+
+    <div class="form-container">
+        <div class="form-group">
+            <label for="homeTeam">Команда хозяев:</label>
+            <select id="homeTeam" class="team-select">
+                <option value="">Выберите команду</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="awayTeam">Команда гостей:</label>
+            <select id="awayTeam" class="team-select">
+                <option value="">Выберите команду</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="matchCount">Количество матчей для анализа:</label>
+            <select id="matchCount" class="count-select">
+                <option value="5">5 матчей</option>
+                <option value="10" selected>10 матчей</option>
+                <option value="15">15 матчей</option>
+                <option value="20">20 матчей</option>
+            </select>
+        </div>
+
+        <button id="predictBtn" class="predict-button">Рассчитать прогноз</button>
+    </div>
+
+    <div id="loading" class="loading hidden">
+        <div class="spinner"></div>
+        <p>Рассчитываем прогноз...</p>
+    </div>
+
+    <div id="result" class="result-container hidden">
+        <h2>Результат прогноза</h2>
+        <div class="prediction-result">
+            <div class="probability home-win">
+                <span class="team">Победа хозяев</span>
+                <span class="percent" id="homeWinPercent">0%</span>
+            </div>
+            <div class="probability draw">
+                <span class="team">Ничья</span>
+                <span class="percent" id="drawPercent">0%</span>
+            </div>
+            <div class="probability away-win">
+                <span class="team">Победа гостей</span>
+                <span class="percent" id="awayWinPercent">0%</span>
+            </div>
+        </div>
+
+        <div class="expected-scores">
+            <h3>Ожидаемые голы:</h3>
+            <p>Хозяева: <span id="expectedHomeGoals">0</span></p>
+            <p>Гости: <span id="expectedAwayGoals">0</span></p>
+        </div>
+
+        <div class="score-probabilities">
+            <h3>Вероятности счетов:</h3>
+            <div id="scoreTable" class="score-table"></div>
+        </div>
+    </div>
+
+    <div id="error" class="error-container hidden">
+        <p>Ошибка при получении прогноза. Проверьте введенные данные.</p>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/i18n/ru.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
