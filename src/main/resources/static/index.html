@@ -28,12 +28,9 @@
 
         <div class="form-group">
             <label for="matchCount">Количество матчей для анализа:</label>
-            <select id="matchCount" class="count-select">
-                <option value="5">5 матчей</option>
-                <option value="10" selected>10 матчей</option>
-                <option value="15">15 матчей</option>
-                <option value="20">20 матчей</option>
-            </select>
+            <input type="number" id="matchCount" class="count-input"
+                   min="1" max="50" value="10" step="1" required>
+            <div class="hint">Введите число от 1 до 50</div>
         </div>
 
         <button id="predictBtn" class="predict-button">Рассчитать прогноз</button>
@@ -41,7 +38,23 @@
 
     <div id="loading" class="loading hidden">
         <div class="spinner"></div>
-        <p>Рассчитываем прогноз...</p>
+        <p>Загружаем данные...</p>
+    </div>
+
+    <div id="matchesResult" class="matches-container hidden">
+        <h2>Последние матчи команд</h2>
+
+        <div class="team-matches">
+            <div class="team-section">
+                <h3 id="homeTeamMatchesTitle"></h3>
+                <div id="homeTeamMatches" class="matches-list"></div>
+            </div>
+
+            <div class="team-section">
+                <h3 id="awayTeamMatchesTitle"></h3>
+                <div id="awayTeamMatches" class="matches-list"></div>
+            </div>
+        </div>
     </div>
 
     <div id="result" class="result-container hidden">
