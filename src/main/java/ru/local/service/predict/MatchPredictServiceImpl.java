@@ -6,12 +6,12 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.local.dto.MatchPredictDto;
+import ru.local.exception.NotValidValueException;
 import ru.local.mapper.MatchPredictMapper;
 import ru.local.model.MatchPredict;
 import ru.local.model.TeamStats;
 import ru.local.exception.NotFoundException;
 import ru.local.model.Team;
-import ru.local.repository.MatchRepository;
 import ru.local.repository.TeamRepository;
 import ru.local.service.stats.StatsCalculationServiceImpl;
 
@@ -24,12 +24,15 @@ import java.util.Map;
 @Slf4j
 public class MatchPredictServiceImpl implements MatchPredictService {
     final TeamRepository teamRepository;
-    final MatchRepository matchRepository;
     final StatsCalculationServiceImpl statsCalculationService;
     final MatchPredictMapper matchPredictMapper;
 
     @Override
     public MatchPredictDto predictedResultMatch(String homeTeam, String awayTeam, int lastMatchesToAnalyze) {
+        if (lastMatchesToAnalyze <= 0) {
+            throw new NotValidValueException(String.format("Неккоректное количество матчей: %d", lastMatchesToAnalyze));
+        }
+
         Team teamHome = getTeamOrThrow(homeTeam);
         Team teamAway = getTeamOrThrow(awayTeam);
 

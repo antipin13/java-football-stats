@@ -17,6 +17,13 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleException(final NotValidValueException e) {
+        log.warn("Неккоректный запрос: {}", e.getMessage());
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleException(final NotFoundException e) {
         return new ErrorResponse(e.getMessage());

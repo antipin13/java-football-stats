@@ -5,8 +5,14 @@ class MatchPredictor {
         this.awayTeamSelect = document.getElementById('awayTeam');
         this.predictBtn = document.getElementById('predictBtn');
         this.loadingElement = document.getElementById('loading');
+        this.matchesResultElement = document.getElementById('matchesResult');
         this.resultElement = document.getElementById('result');
         this.errorElement = document.getElementById('error');
+
+         this.homeTeamMatchesElement = document.getElementById('homeTeamMatches');
+         this.awayTeamMatchesElement = document.getElementById('awayTeamMatches');
+         this.homeTeamMatchesTitle = document.getElementById('homeTeamMatchesTitle');
+         this.awayTeamMatchesTitle = document.getElementById('awayTeamMatchesTitle');
 
         this.init();
     }
@@ -51,7 +57,6 @@ class MatchPredictor {
     initializeSelect2() {
             $(this.homeTeamSelect).select2({
                 placeholder: "Начните вводить название команды",
-                //allowClear: true,
                 language: "ru",
                 width: '100%',
                 minimumResultsForSearch: 1
@@ -59,7 +64,6 @@ class MatchPredictor {
 
             $(this.awayTeamSelect).select2({
                 placeholder: "Начните вводить название команды",
-                allowClear: true,
                 language: "ru",
                 width: '100%',
                 minimumResultsForSearch: 1
@@ -86,18 +90,37 @@ class MatchPredictor {
         }
 
         this.showLoading();
+        this.hideMatchesResult();
         this.hideResult();
         this.hideError();
 
         try {
-            const prediction = await this.fetchPrediction(homeTeam, awayTeam, matchCount);
+            const [homeMatches, awayMatches, prediction] = await Promise.all([
+            this.fetchRecentMatches(homeTeam, matchCount),
+            this.fetchRecentMatches(awayTeam, matchCount),
+            this.fetchPrediction(homeTeam, awayTeam, matchCount)
+            ]);
+
+            this.displayRecentMatches(homeTeam, awayTeam, homeMatches, awayMatches);
             this.displayPrediction(prediction);
         } catch (error) {
-            console.error('Ошибка:', error);
-            this.showError();
+             console.error('Ошибка:', error);
+             this.showError();
         } finally {
-            this.hideLoading();
+              this.hideLoading();
         }
+    }
+
+    async fetchRecentMatches(teamName, countLastMatches) {
+        const url = `${this.apiBaseUrl}/match?teamName=${encodeURIComponent(teamName)}&countLastMatches=${countLastMatches}`;
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            return [];
+        }
+
+        return await response.json();
     }
 
     async fetchPrediction(homeTeam, awayTeam, countLastMatches) {
@@ -110,6 +133,84 @@ class MatchPredictor {
         }
 
         return await response.json();
+    }
+
+    displayRecentMatches(homeTeam, awayTeam, homeMatches, awayMatches) {
+        this.homeTeamMatchesTitle.textContent = `${homeTeam} (последние ${homeMatches.length} матчей)`;
+        this.awayTeamMatchesTitle.textContent = `${awayTeam} (последние ${awayMatches.length} матчей)`;
+
+        this.displayMatchesList(this.homeTeamMatchesElement, homeMatches, homeTeam);
+        this.displayMatchesList(this.awayTeamMatchesElement, awayMatches, awayTeam);
+
+        this.showMatchesResult();
+    }
+
+    displayMatchesList(container, matches, currentTeam) {
+        container.innerHTML = '';
+
+        if (!matches || matches.length === 0) {
+            container.innerHTML = '<p class="no-matches">Нет данных о матчах</p>';
+            return;
+        }
+
+        matches.forEach(match => {
+            const matchElement = document.createElement('div');
+            matchElement.className = 'match-item';
+
+            const isHome = match.homeTeam === currentTeam;
+            const resultClass = this.getMatchResultClass(match, currentTeam);
+            const resultText = this.getMatchResultText(match, currentTeam);
+
+            const date = new Date(match.matchDate).toLocaleDateString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+
+            matchElement.innerHTML = `
+                <div class="match-header">
+                    <span class="match-date">${date}</span>
+                    <span class="match-tournament">${match.tournament || 'Турнир'}</span>
+                </div>
+                <div class="match-teams">
+                    <span class="team-name ${isHome ? 'current-team' : ''}">${match.homeTeam}</span>
+                    <span class="match-score ${resultClass}">
+                        ${match.homeTeamGoals} - ${match.awayTeamGoals}
+                    </span>
+                    <span class="team-name ${!isHome ? 'current-team' : ''}">${match.awayTeam}</span>
+                </div>
+                <div class="match-info">
+                    <span class="match-location">
+                        ${isHome ? 'Дома' : 'В гостях'}
+                    </span>
+                    <span class="match-result ${resultClass}">
+                        ${resultText}
+                    </span>
+                </div>
+            `;
+
+            container.appendChild(matchElement);
+        });
+    }
+
+    getMatchResultClass(match, currentTeam) {
+        const isHome = match.homeTeam === currentTeam;
+        const currentGoals = isHome ? match.homeTeamGoals : match.awayTeamGoals;
+        const opponentGoals = isHome ? match.awayTeamGoals : match.homeTeamGoals;
+
+        if (currentGoals > opponentGoals) return 'win';
+        if (currentGoals < opponentGoals) return 'lose';
+        return 'draw';
+    }
+
+    getMatchResultText(match, currentTeam) {
+        const isHome = match.homeTeam === currentTeam;
+        const currentGoals = isHome ? match.homeTeamGoals : match.awayTeamGoals;
+        const opponentGoals = isHome ? match.awayTeamGoals : match.homeTeamGoals;
+
+        if (currentGoals > opponentGoals) return 'Победа';
+        if (currentGoals < opponentGoals) return 'Поражение';
+        return 'Ничья';
     }
 
     displayPrediction(prediction) {
@@ -166,6 +267,14 @@ class MatchPredictor {
 
     hideResult() {
         this.resultElement.classList.add('hidden');
+    }
+
+    showMatchesResult() {
+        this.matchesResultElement.classList.remove('hidden');
+    }
+
+    hideMatchesResult() {
+         this.matchesResultElement.classList.add('hidden');
     }
 
     showError() {
